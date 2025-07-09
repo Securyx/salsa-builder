@@ -1,0 +1,112 @@
+name: SLSA3 Builder
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+        description: "Tag name for release (if provided, will publish to release)"
+      task:
+        required: true
+        type: string
+        description: "Mise task to run"
+      artifact:
+        required: true
+        type: string
+        description: "Artifact name"
+    outputs:
+      artifact:
+        description: "Name of the artifact built"
+        value: "${{ fromJSON(jobs.slsa-run.outputs.build-artifacts-outputs).name }}"
+      status:
+        description: "Status of the build"
+        value: "${{ fromJSON(jobs.slsa-run.outputs.build-artifacts-outputs).status }}"
+      provenance-download-name:
+        description: "The name of the provenance attestation uploaded to the workflow run."
+        value: ${{ jobs.slsa-run.outputs.attestations-download-name }}
+      provenance-download-sha256:
+        description: "The sha256 of the provenance attestation uploaded to the workflow run."
+        value: ${{ jobs.slsa-run.outputs.attestations-download-sha256 }}
+
+
+jobs:
+  slsa-setup:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      slsa-token: ${{ steps.setup.outputs.slsa-token }}
+    steps:
+      - name: Setup SLSA
+        id: setup
+        uses: slsa-framework/slsa-github-generator/actions/delegator/setup-generic@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+        with:
+          slsa-workflow-recipient: "delegator_generic_slsa3.yml"
+          slsa-rekor-log-public: true
+          slsa-runner-label: "ubuntu-latest"
+          slsa-build-action-path: "./internal/callback_action"
+          slsa-workflow-inputs: ${{ toJson(inputs) }}
+
+  slsa-run:
+    needs: [slsa-setup]
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+      packages: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/delegator_generic_slsa3.yml@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+    with:
+      slsa-token: ${{ needs.slsa-setup.outputs.slsa-token }}
+
+  publish:
+    needs: [slsa-run]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download provenance
+        uses: slsa-framework/slsa-github-generator/actions/delegator/secure-attestations-download@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+        with:
+          name: ${{ needs.slsa-run.outputs.attestations-download-name }}
+          sha256: ${{ needs.slsa-run.outputs.attestations-download-sha256 }}
+      
+      - name: Upload provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUT: ${{ needs.slsa-run.outputs.attestations-download-name }}
+          TAG: ${{ inputs.tag_name }}
+        run: |
+          set -euo pipefail
+
+          # List attestations.
+          find "$OUT" -type f | tee ./FILES
+
+          # Upload attestations.
+          while IFS= read -r line; do
+              file="$line"
+              gh -R "$GITHUB_REPOSITORY" release upload "$TAG" "$file"
+          done < FILES
+      
+      - name: Download artifacts
+        uses: slsa-framework/slsa-github-generator/actions/delegator/secure-download-folder@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+        with:
+          name: ${{ fromJson(needs.slsa-run.outputs.build-artifacts-outputs).artifact-download-name }}
+          sha256: ${{ fromJson(needs.slsa-run.outputs.build-artifacts-outputs).artifact-download-sha256 }}
+          path: "."
+      
+      - name: Upload the artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag_name }}
+        run: |
+          set -euo pipefail
+
+          # List artifacts.
+          find artifacts/ -type f | tee ./FILES
+
+          # Upload artifacts.
+          while IFS= read -r line; do
+              file="$line"
+              gh -R "$GITHUB_REPOSITORY" release upload "$TAG" "$file"
+          done < FILES
