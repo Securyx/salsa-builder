@@ -1,0 +1,26 @@
+name: "action example"
+description: "build some artifacts."
+inputs:
+  task:
+      required: true
+      type: string
+      description: "Mise task to run"
+  artifact:
+    description: "Artifact name to build"
+    required: true
+outputs:
+  artifact:
+    description: "Name of the artifact built"
+    value: "${{ steps.build.outputs.artifact }}"
+  status:
+    description: "Status of the build"
+    value: "${{ steps.build.outputs.status }}"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup mise
+      uses: jdx/mise-action@v2
+    - name: Build
+      shell: bash
+      run: mise "${{ inputs.task }}"
