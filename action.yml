@@ -8,6 +8,9 @@ inputs:
   artifact:
     description: "Artifact name to build"
     required: true
+  apt_packages:
+    description: "Space-separated list of apt packages to install"
+    required: false
 outputs:
   artifact:
     description: "Name of the artifact built"
@@ -21,6 +24,10 @@ runs:
   steps:
     - name: Setup mise
       uses: jdx/mise-action@v2
+    - name: Install apt packages
+      if: ${{ inputs.apt_packages != '' }}
+      shell: bash
+      run: sudo apt-get install -y ${{ inputs.apt_packages }}
     - name: Build
       shell: bash
       run: mise "${{ inputs.task }}"

@@ -14,6 +14,10 @@ on:
         required: true
         type: string
         description: "Artifact name"
+      apt_packages:
+        required: false
+        type: string
+        description: "Space-separated list of apt packages to install"
     outputs:
       artifact:
         description: "Name of the artifact built"

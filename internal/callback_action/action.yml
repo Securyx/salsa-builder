@@ -46,6 +46,7 @@ runs:
       with:
         task: ${{ fromJson(inputs.slsa-workflow-inputs).task }}
         artifact: ${{ fromJson(inputs.slsa-workflow-inputs).artifact }}
+        apt_packages: ${{ fromJson(inputs.slsa-workflow-inputs).apt_packages }}
 
     - name: Generate layout file
       id: generate-layout
