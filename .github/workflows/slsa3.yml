@@ -44,7 +44,7 @@ jobs:
     steps:
       - name: Setup SLSA
         id: setup
-        uses: slsa-framework/slsa-github-generator/actions/delegator/setup-generic@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+        uses: slsa-framework/slsa-github-generator/actions/delegator/setup-generic@a09dd8c05eda63cace134cb7dccd7e019f25e6f3
         with:
           slsa-workflow-recipient: "delegator_generic_slsa3.yml"
           slsa-rekor-log-public: true
@@ -59,7 +59,7 @@ jobs:
       contents: write
       actions: read
       packages: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/delegator_generic_slsa3.yml@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+    uses: slsa-framework/slsa-github-generator/.github/workflows/delegator_generic_slsa3.yml@a09dd8c05eda63cace134cb7dccd7e019f25e6f3
     with:
       slsa-token: ${{ needs.slsa-setup.outputs.slsa-token }}
 
@@ -70,7 +70,7 @@ jobs:
       contents: write
     steps:
       - name: Download provenance
-        uses: slsa-framework/slsa-github-generator/actions/delegator/secure-attestations-download@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+        uses: slsa-framework/slsa-github-generator/actions/delegator/secure-attestations-download@a09dd8c05eda63cace134cb7dccd7e019f25e6f3
         with:
           name: ${{ needs.slsa-run.outputs.attestations-download-name }}
           sha256: ${{ needs.slsa-run.outputs.attestations-download-sha256 }}
@@ -93,7 +93,7 @@ jobs:
           done < FILES
       
       - name: Download artifacts
-        uses: slsa-framework/slsa-github-generator/actions/delegator/secure-download-folder@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+        uses: slsa-framework/slsa-github-generator/actions/delegator/secure-download-folder@a09dd8c05eda63cace134cb7dccd7e019f25e6f3
         with:
           name: ${{ fromJson(needs.slsa-run.outputs.build-artifacts-outputs).artifact-download-name }}
           sha256: ${{ fromJson(needs.slsa-run.outputs.build-artifacts-outputs).artifact-download-sha256 }}
