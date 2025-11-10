@@ -59,7 +59,7 @@ jobs:
       contents: write
       actions: read
       packages: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/delegator_generic_slsa3.yml@4876e96b8268fd8b7b8d8574718d06c0d0426d40
+    uses: slsa-framework/slsa-github-generator/.github/workflows/delegator_generic_slsa3.yml@a09dd8c05eda63cace134cb7dccd7e019f25e6f3
     with:
       slsa-token: ${{ needs.slsa-setup.outputs.slsa-token }}
 
