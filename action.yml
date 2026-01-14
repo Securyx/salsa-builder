@@ -28,7 +28,7 @@ runs:
         echo "MISE_CARGO_HOME=$HOME/.local/share/mise/cargo" >> $GITHUB_ENV
         echo "MISE_RUSTUP_HOME=$HOME/.local/share/mise/rustup" >> $GITHUB_ENV
     - name: Setup mise
-      uses: jdx/mise-action@v2
+      uses: jdx/mise-action@v3
     - name: Install apt packages
       if: ${{ inputs.apt_packages != '' }}
       shell: bash
